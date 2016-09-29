@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="http://d3js.org/d3.v2.min.js?2.9.3"></script>
+<style>
+
+body {
+    font-family: Arial, sans-serif;
+}
+
+.link {
+  stroke: #aaa;
+}
+
+.node text {
+stroke:#333;
+cursor:pointer;
+}
+
+.node circle{
+stroke:#fff;
+stroke-width:3px;
+fill:#555;
+}
+
+</style>
+<body>
+    <h1> Developer community at VIT Univerity (on Github)  </h1>
+    
+    <p>
+        Legend
+        <ol>
+            <li> <em>Size</em> = Number of connections (Followers/Following) </li>
+            <li> <em>Color</em> = Number of repositories, darker = more </li>
+        </ol>
+
+        <small>Data as on Fri Sep 30, 2016</small>
+    </p>
+
+    <p> Made by <a href="https://saurabhmathur96.github.io"> Saurabh Mathur </a> <br>
+        Inspired by <a href="https://gramener.com/codersearch"> codersearch by Gramener </a>
+    </p>
+<script>
+
+var width = 1024,
+    height = 1024
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+var force = d3.layout.force()
+    .gravity(.1)
+    .distance(50)
+    .charge(-30)
+    .size([width, height]);
+
+d3.json("graphFile.json", function(json) {
+    console.log(json)
+    
+  var link = svg.selectAll(".link")
+      .data(json.links)
+    .enter().append("line")
+      .attr("class", "link")
+    .style("stroke", "rgba(51,51,51,0.2)")
+    .style("stroke-width", function(d) { return Math.sqrt(d.weight); });
+force
+      .nodes(json.nodes)
+      .links(json.links)
+      .start();
+  var node = svg.selectAll(".node")
+      .data(json.nodes)
+      .enter().append("g")
+      .attr("class", "node")
+      .call(force.drag);
+
+var colors = ["rgba(158,202,225, .8)", "rgba(107,174,214,.8)", "rgba(66,146,198,.8)", "rgba(33,113,181,.8)", "rgba(8,81,156,.8)", "rgba(8,48,107,.8)"]
+  node.append('a')
+        .classed('node', true)
+      .attr('xlink:href', function(d) { return 'http://github.com/' + d.login; })
+      .append("circle")
+      .attr("r", function (d) { return 5 * Math.pow(1 + d.connections.length , 0.33); })
+      .style("stroke", "rgba(0,0,0,0)")
+      .style("fill", function (d) { return colors[parseInt(d.weight / 10.0 )] } )
+    .append('title')
+              .text(function(d) {
+                  return [d.login, d.connections.length, "connections", d.weight, "respositories"].join(" ");
+              });
+
+  force.on("tick", function() {
+    link.attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
+
+    node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+  });
+
+
+  
+    
+  
+});
+
+</script>
+</body>
